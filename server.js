@@ -1,13 +1,45 @@
+/*   
+Project Name: MultiPlayer Pong Game
+Author: SAKIB ANJUM
+email: sakibanjum.313@gmail.com
+*/
+
 const server = require("http").createServer();
-const io = require('socket.io')(server);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 const PORT = 3000;
 
-
 server.listen(PORT, () => {
-    console.log(`Listening on port ${PORT}...`);
+  console.log(`Listening on port ${PORT}...`);
 });
 
-io.on('connection', (socket) => {
-    console.log('a user connected');
-})
+let readyPlayerCount = 0;
+
+io.on("connection", (socket) => {
+  console.log("a user connected", socket.id);
+
+  socket.on('ready', () => {
+    console.log('Player Ready', socket.id);
+    readyPlayerCount++;
+    if (readyPlayerCount % 2 === 0) {
+      // broadcast('startGame')
+      io.emit('startGame', socket.id);
+    }
+  });
+
+  socket.on('paddleMove', (paddleData) => {
+    socket.broadcast.emit("paddleMove", paddleData);
+  })
+
+  socket.on("ballMove", (ballData) => {
+    socket.broadcast.emit("ballMove", ballData);
+  });
+  socket.on('disconnect', (reason) => {
+    console.log(`CLIENT ${socket.id} disconnected : ${reason}`);
+  })
+});
