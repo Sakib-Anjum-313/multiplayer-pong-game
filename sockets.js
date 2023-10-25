@@ -12,20 +12,22 @@ function listen(io) {
     socket.on("ready", () => {
       room = "room" + Math.floor(readyPlayerCount / 2);
       socket.join(room);
+
       console.log("Player Ready", socket.id, room);
       readyPlayerCount++;
+      
       if (readyPlayerCount % 2 === 0) {
         // broadcast('startGame')
-        pongNamespace.emit("startGame", socket.id);
+        pongNamespace.in(room).emit("startGame", socket.id);
       }
     });
 
     socket.on("paddleMove", (paddleData) => {
-      socket.broadcast.emit("paddleMove", paddleData);
+      socket.to(room).emit("paddleMove", paddleData);
     });
 
     socket.on("ballMove", (ballData) => {
-      socket.broadcast.emit("ballMove", ballData);
+      socket.to(room).emit("ballMove", ballData);
     });
 
     socket.on("disconnect", (reason) => {
